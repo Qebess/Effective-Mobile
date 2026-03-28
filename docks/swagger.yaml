@@ -1,0 +1,196 @@
+openapi: 3.0.0
+info:
+  title: Subscription API
+  description: API для управления подписками пользователей
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8080
+    description: Local server
+
+paths:
+  /:
+    post:
+      summary: Создать новую подписку
+      tags:
+        - subscriptions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+      responses:
+        '200':
+          description: Успешно создано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '400':
+          description: Неверный формат данных
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /{id}:
+    get:
+      summary: Получить подписку по ID
+      tags:
+        - subscriptions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID подписки
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '400':
+          description: Неверный формат ID
+        '500':
+          description: Ошибка сервера
+    
+    put:
+      summary: Обновить подписку
+      tags:
+        - subscriptions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Subscription'
+      responses:
+        '200':
+          description: Успешно обновлено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+    
+    delete:
+      summary: Удалить подписку
+      tags:
+        - subscriptions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Успешно удалено
+          content:
+            application/json:
+              schema:
+                type: integer
+        '400':
+          description: Неверный формат ID
+
+  /list:
+    get:
+      summary: Получить список всех подписок
+      tags:
+        - subscriptions
+      responses:
+        '200':
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Subscription'
+
+  /range:
+    post:
+      summary: Получить сумму по диапазону
+      tags:
+        - subscriptions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RangeParams'
+      responses:
+        '200':
+          description: Общая сумма
+          content:
+            application/json:
+              schema:
+                type: integer
+        '400':
+          description: Неверный формат данных
+
+components:
+  schemas:
+    Subscription:
+      type: object
+      required:
+        - service_name
+        - price
+        - user_id
+        - start_date
+      properties:
+        id:
+          type: integer
+          example: 1
+          description: ID подписки
+        service_name:
+          type: string
+          example: Netflix
+          description: Название сервиса
+        price:
+          type: integer
+          example: 999
+          description: Стоимость подписки
+        user_id:
+          type: string
+          example: 60601fee-2bf1-4721-ae6f-7636e79a0cba
+          description: ID пользователя
+        start_date:
+          type: string
+          format: date
+          example: "05-2023"
+          description: Дата начала подписки
+    
+    RangeParams:
+      type: object
+      required:
+        - service_name
+        - user_id
+        - start_date
+        - end_date
+      properties:
+        service_name:
+          type: string
+          example: Netflix
+        user_id:
+          type: string
+          example: 60601fee-2bf1-4721-ae6f-7636e79a0cba
+        start_date:
+          type: string
+          example: "02-2025"
+          description: Дата начала периода (MM-YYYY)
+        end_date:
+          type: string
+          example: "03-2025"
+          description: Дата окончания периода (MM-YYYY)

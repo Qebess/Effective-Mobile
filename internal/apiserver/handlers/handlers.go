@@ -10,6 +10,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// GetHandler godoc
+// @Summary      Получить подписку по ID
+// @Description  Возвращает информацию о подписке по её идентификатору
+// @Tags         subscriptions
+// @Produce      json
+// @Param        id   path      int  true  "ID подписки"
+// @Success      200  {object}  model.Subscription
+// @Failure      400  {object}  map[string]interface{} "Неверный формат ID"
+// @Failure      500  {object}  map[string]interface{} "Ошибка сервера"
+// @Router       /{id} [get]
 func GetHandler(loger *slog.Logger, store *store.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.ParseInt(c.Param("id"), 10, 64)
@@ -21,6 +31,7 @@ func GetHandler(loger *slog.Logger, store *store.Store) gin.HandlerFunc {
 		var sub *model.Subscription
 		if sub, err = store.User().Get(id); err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
+			return
 		}
 		sub.StartDate = sub.StartDate[3:]
 
@@ -29,6 +40,17 @@ func GetHandler(loger *slog.Logger, store *store.Store) gin.HandlerFunc {
 	}
 }
 
+// CreateHandler godoc
+// @Summary      Создать новую подписку
+// @Description  Добавляет новую подписку в систему
+// @Tags         subscriptions
+// @Accept       json
+// @Produce      json
+// @Param        subscription body      model.Subscription  true  "Данные подписки"
+// @Success      200         {object}  model.Subscription
+// @Failure      400         {object}  map[string]interface{} "Неверный формат данных"
+// @Failure      500         {object}  map[string]interface{} "Ошибка сервера"
+// @Router       / [post]
 func CreateHandler(loger *slog.Logger, store *store.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
@@ -55,6 +77,16 @@ func CreateHandler(loger *slog.Logger, store *store.Store) gin.HandlerFunc {
 	}
 }
 
+// DeleteHandler godoc
+// @Summary      Удалить подписку
+// @Description  Удаляет подписку по ID
+// @Tags         subscriptions
+// @Produce      json
+// @Param        id   path      int  true  "ID подписки"
+// @Success      200  {integer} int  "ID удаленной подписки"
+// @Failure      400  {object}  map[string]interface{} "Неверный формат ID"
+// @Failure      500  {object}  map[string]interface{} "Ошибка сервера"
+// @Router       /{id} [delete]
 func DeleteHandler(loger *slog.Logger, store *store.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.ParseInt(c.Param("id"), 10, 64)
@@ -74,6 +106,18 @@ func DeleteHandler(loger *slog.Logger, store *store.Store) gin.HandlerFunc {
 	}
 }
 
+// UpdateHandler godoc
+// @Summary      Обновить подписку
+// @Description  Обновляет данные существующей подписки
+// @Tags         subscriptions
+// @Accept       json
+// @Produce      json
+// @Param        id            path      int                 true  "ID подписки"
+// @Param        subscription  body      model.Subscription  true  "Обновленные данные подписки"
+// @Success      200           {object}  model.Subscription
+// @Failure      400           {object}  map[string]interface{} "Неверный формат данных или ID"
+// @Failure      500           {object}  map[string]interface{} "Ошибка сервера"
+// @Router       /{id} [put]
 func UpdateHandler(loger *slog.Logger, store *store.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id, err := strconv.ParseInt(c.Param("id"), 10, 64)
@@ -105,6 +149,14 @@ func UpdateHandler(loger *slog.Logger, store *store.Store) gin.HandlerFunc {
 
 }
 
+// GetList godoc
+// @Summary      Получить список всех подписок
+// @Description  Возвращает список всех подписок в системе
+// @Tags         subscriptions
+// @Produce      json
+// @Success      200  {array}   model.Subscription
+// @Failure      500  {object}  map[string]interface{} "Ошибка сервера"
+// @Router       /list [get]
 func GetList(loger *slog.Logger, store *store.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var list []model.Subscription
@@ -121,13 +173,25 @@ func GetList(loger *slog.Logger, store *store.Store) gin.HandlerFunc {
 	}
 }
 
+// rangeParam представляет параметры для запроса диапазона
 type rangeParam struct {
-	Service_name string `json:"service_name"`
-	User_id      string `json:"user_id"`
-	Start_date   string `json:"start_date"`
-	End_date     string `json:"end_date"`
+	Service_name string `json:"service_name" example:"Netflix" description:"Название сервиса"`
+	User_id      string `json:"user_id" example:"60601fee-2bf1-4721-ae6f-7636e79a0cba" description:"ID пользователя"`
+	Start_date   string `json:"start_date" example:"01-2024" description:"Дата начала периода (MM-YYYY)"`
+	End_date     string `json:"end_date" example:"04-2024" description:"Дата окончания периода (MM-YYYY)"`
 }
 
+// GetRangeHandler godoc
+// @Summary      Получить сумму по диапазону
+// @Description  Возвращает общую сумму подписок за указанный период
+// @Tags         subscriptions
+// @Accept       json
+// @Produce      json
+// @Param        params  body      rangeParam  true  "Параметры поиска"
+// @Success      200     {integer} integer     "Общая сумма"
+// @Failure      400     {object}  map[string]interface{} "Неверный формат данных"
+// @Failure      500     {object}  map[string]interface{} "Ошибка сервера"
+// @Router       /range [post]
 func GetRangeHandler(loger *slog.Logger, store *store.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var param rangeParam
